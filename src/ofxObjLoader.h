@@ -4,9 +4,9 @@
 
 class ofxObjLoader
 {
-public:
-	
-	ofMesh mesh;
-	const ofMesh& load(string path);
-	
+  public:
+	void load(string path, ofMesh& mesh, bool generateNormals = true);
+	void save(string path, ofMesh& mesh);
+
+//    void generateNormals(ofMesh& mesh, float smoo);
 };
