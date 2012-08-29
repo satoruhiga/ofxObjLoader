@@ -17,7 +17,7 @@
  * ndr@pobox.com, http://www.pobox.com/~ndr/
  *
  * Addon by Satoru Higa ( http://structor.jp/ )
- * Improvements by James George ( http://jamesgeorge.org/ )
+ * Improvements by James George ( http://jamesgeorge.org/ ) at YCAM InterLab ( http://interlab.ycam.jp/ )
  *
  * Example sphere from: http://liszt.stanford.edu/meshes/sphere.obj
  */
