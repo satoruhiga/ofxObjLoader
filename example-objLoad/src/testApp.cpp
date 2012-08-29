@@ -4,21 +4,15 @@
 void testApp::setup(){
     ofBackground(0);
     ofSetFrameRate(30);
-    
-	loader.load("loadTest.obj", mesh, true);
-    
-    cout << " num vertices " << mesh.getNumVertices() << endl;
-    cout << " num tex coords " << mesh.getNumTexCoords() << endl;
-    cout << " num normals " << mesh.getNumNormals() << endl;
-    cout << " num indices " << mesh.getNumIndices() << endl;
-    
-    loader.save("loadtest_saved.obj", mesh);
-    loader.load("loadtest_saved.obj", mesh, true);
 
-    cout << " num vertices " << mesh.getNumVertices() << endl;
-    cout << " num tex coords " << mesh.getNumTexCoords() << endl;
-    cout << " num normals " << mesh.getNumNormals() << endl;
-    cout << " num indices " << mesh.getNumIndices() << endl;
+	ofxObjLoader::load("sphere.obj", original, true);
+    ofxObjLoader::save("sphere_saved.obj", original);
+    ofxObjLoader::load("sphere_saved.obj", saved, false);
+
+    cout << " num vertices " << original.getNumVertices() << " " <<  saved.getNumVertices() <<  endl;
+    cout << " num texcords " << original.getNumTexCoords() << " " <<  saved.getNumTexCoords() << endl;
+    cout << " num normals " << original.getNumNormals() << " " <<  saved.getNumNormals() << endl;
+    cout << " num indices " << original.getNumIndices() << " " <<  saved.getNumIndices() << endl;
 
 }
 
@@ -29,12 +23,17 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	cam.setPosition(mesh.getCentroid() + ofVec3f(0,0,mouseX));
-    cam.lookAt(mesh.getCentroid(), ofVec3f(0,1,0));
+	cam.setPosition(original.getCentroid() + ofVec3f(0,0,mouseY/10));
+    cam.lookAt(original.getCentroid(), ofVec3f(0,1,0));
     
     cam.begin();
     ofSetColor(255);
-	mesh.drawWireframe();
+	if(ofGetMouseX() > ofGetWidth()/2){
+		original.drawWireframe();
+	}
+	else{
+		saved.drawWireframe();
+	}
     cam.end();
 }
 

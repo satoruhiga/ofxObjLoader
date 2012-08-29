@@ -18,8 +18,9 @@ class testApp : public ofBaseApp{
     void windowResized(int w, int h);
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
-    ofxObjLoader loader;
+
     ofCamera cam;
-    ofMesh mesh;
+    ofMesh original;
+	ofMesh saved;
 
 };

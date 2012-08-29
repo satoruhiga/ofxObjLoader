@@ -1521,7 +1521,7 @@ glmWriteOBJ(GLMmodel* model, char* filename, GLuint mode)
 		T(group->triangles[i]).vindices[0],
 		T(group->triangles[i]).findex,
 		T(group->triangles[i]).vindices[1],
-		T(group->triangles[i]).findex,2
+		T(group->triangles[i]).findex,
 		T(group->triangles[i]).vindices[2],
 		T(group->triangles[i]).findex);
       } else if (mode & GLM_TEXTURE) {
