@@ -73,9 +73,10 @@ void ofxObjLoader::save(string path, ofMesh& mesh){
     GLuint writeMode = GLM_NONE;
 //    cout << "saving mesh verts: " << mesh.getNumVertices() << " norms " << mesh.getNumNormals() << " tex coords" << mesh.getNumTexCoords() << " indeces " << mesh.getNumIndices() << endl;
     GLMmodel* m = new GLMmodel();
+
     if(mesh.getNumVertices() > 0){
         m->numvertices = mesh.getNumVertices();
-	    m->vertices = new GLfloat[m->numvertices*3+1];
+	    m->vertices = new GLfloat[(m->numvertices+1)*3];
         memcpy(&m->vertices[3], &mesh.getVertices()[0].x, sizeof(ofVec3f) * mesh.getNumVertices());
     }
     else {
@@ -85,14 +86,14 @@ void ofxObjLoader::save(string path, ofMesh& mesh){
 
     if(mesh.getNumNormals() > 0){
         m->numnormals = mesh.getNumNormals();
-        m->normals = new GLfloat[m->numnormals*3+1];
+        m->normals = new GLfloat[(m->numnormals+1)*3];
         memcpy(&m->normals[3], &mesh.getNormals()[0].x, sizeof(ofVec3f)*mesh.getNumNormals());
         writeMode |= GLM_SMOOTH;
     }
 	
     if(mesh.getNumTexCoords() > 0){
         m->numtexcoords = mesh.getNumTexCoords();
-        m->texcoords = new GLfloat[m->numtexcoords*2+1];
+        m->texcoords = new GLfloat[(m->numtexcoords+1)*2];
         memcpy(&m->texcoords[2], &mesh.getTexCoords()[0].x, sizeof(ofVec2f)*mesh.getNumTexCoords());
         writeMode |= GLM_TEXTURE;
 
@@ -125,6 +126,7 @@ void ofxObjLoader::save(string path, ofMesh& mesh){
         }
     }
     
+	
     glmWriteOBJ(m, (char*)path.c_str(), writeMode);
     glmDelete(m);
 }
