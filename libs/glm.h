@@ -10,9 +10,36 @@
       coordinate generation (spheremap and planar projections) + more.
 
  */
+//#include "ofMain.h"
+#if defined( __WIN32__ ) || defined( _WIN32 )
+	#define TARGET_WIN32
+#elif defined( __APPLE_CC__)
+	#include <TargetConditionals.h>
 
+	#if (TARGET_OS_IPHONE_SIMULATOR) || (TARGET_OS_IPHONE) || (TARGET_IPHONE)
+		#define TARGET_OF_IPHONE
+		#define TARGET_OPENGLES
+	#else
+		#define TARGET_OSX
+	#endif
+#elif defined (ANDROID)
+	#define TARGET_ANDROID
+	#define TARGET_OPENGLES
+#else
+	#define TARGET_LINUX
+#endif
 
-#include <GLUT/glut.h>
+#ifdef TARGET_WIN32
+	#define GLUT_BUILDING_LIB
+	#include "glut.h"
+#endif
+#ifdef TARGET_OSX
+	#include <GLUT/glut.h>
+#endif
+#ifdef TARGET_LINUX
+	#include <GL/glut.h>
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
