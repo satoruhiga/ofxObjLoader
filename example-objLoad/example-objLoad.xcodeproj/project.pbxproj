@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		601A633A1613E03500AECC2B /* glm.c in Sources */ = {isa = PBXBuildFile; fileRef = 601A63381613E03500AECC2B /* glm.c */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; };
 		E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E4328148138ABC890047C5CB /* openFrameworksDebug.a */; };
 		E45BE97B0E8CC7DD009D7055 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E45BE9710E8CC7DD009D7055 /* AGL.framework */; };
@@ -27,7 +28,6 @@
 		E77ECB8D15EDE63C005A8D48 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E77ECB8C15EDE63C005A8D48 /* Accelerate.framework */; };
 		E77ECB9015EDE643005A8D48 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E77ECB8F15EDE643005A8D48 /* QTKit.framework */; };
 		E77ECB9215EDE648005A8D48 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E77ECB9115EDE648005A8D48 /* CoreVideo.framework */; };
-		E79B0E2315A290710091F147 /* glm.c in Sources */ = {isa = PBXBuildFile; fileRef = E79B0E1E15A290710091F147 /* glm.c */; };
 		E79B0E2415A290710091F147 /* ofxObjLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E79B0E2115A290710091F147 /* ofxObjLoader.cpp */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +62,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		601A63381613E03500AECC2B /* glm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glm.c; sourceTree = "<group>"; };
+		601A63391613E03500AECC2B /* glm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glm.h; sourceTree = "<group>"; };
 		BBAB23BE13894E4700AA2426 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = ../../../libs/glut/lib/osx/GLUT.framework; sourceTree = "<group>"; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		E45BE9710E8CC7DD009D7055 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = /System/Library/Frameworks/AGL.framework; sourceTree = "<absolute>"; };
@@ -86,8 +88,6 @@
 		E77ECB8C15EDE63C005A8D48 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		E77ECB8F15EDE643005A8D48 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		E77ECB9115EDE648005A8D48 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
-		E79B0E1E15A290710091F147 /* glm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glm.c; sourceTree = "<group>"; };
-		E79B0E1F15A290710091F147 /* glm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glm.h; sourceTree = "<group>"; };
 		E79B0E2115A290710091F147 /* ofxObjLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxObjLoader.cpp; sourceTree = "<group>"; };
 		E79B0E2215A290710091F147 /* ofxObjLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxObjLoader.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -120,11 +120,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		601A63361613E02900AECC2B /* ofxObjLoader */ = {
+			isa = PBXGroup;
+			children = (
+				601A63371613E03500AECC2B /* libs */,
+				E79B0E2015A290710091F147 /* src */,
+			);
+			name = ofxObjLoader;
+			sourceTree = "<group>";
+		};
+		601A63371613E03500AECC2B /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				601A63381613E03500AECC2B /* glm.c */,
+				601A63391613E03500AECC2B /* glm.h */,
+			);
+			name = libs;
+			path = ../libs;
+			sourceTree = "<group>";
+		};
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
-				E79B0E1D15A290710091F147 /* glm */,
-				E79B0E2015A290710091F147 /* src */,
+				601A63361613E02900AECC2B /* ofxObjLoader */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -206,16 +224,6 @@
 				E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */,
 			);
 			name = openFrameworks;
-			sourceTree = "<group>";
-		};
-		E79B0E1D15A290710091F147 /* glm */ = {
-			isa = PBXGroup;
-			children = (
-				E79B0E1F15A290710091F147 /* glm.h */,
-				E79B0E1E15A290710091F147 /* glm.c */,
-			);
-			name = glm;
-			path = ../glm;
 			sourceTree = "<group>";
 		};
 		E79B0E2015A290710091F147 /* src */ = {
@@ -314,8 +322,8 @@
 			files = (
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* testApp.cpp in Sources */,
-				E79B0E2315A290710091F147 /* glm.c in Sources */,
 				E79B0E2415A290710091F147 /* ofxObjLoader.cpp in Sources */,
+				601A633A1613E03500AECC2B /* glm.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
