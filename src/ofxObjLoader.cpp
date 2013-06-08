@@ -25,7 +25,7 @@
 #include "ofxObjLoader.h"
 #include "glm.h"
 
-void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals) {
+void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool flipFace) {
 	path = ofToDataPath(path);
     
     mesh.clear();
@@ -34,36 +34,40 @@ void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals) {
 	
 	m = glmReadOBJ((char*)path.c_str());
 	
-    if(generateNormals){
+    if (generateNormals)
+	{
         glmFacetNormals(m);
-        glmVertexNormals(m, 90);
+		glmVertexNormals(m, 90);
     }
-    
-    GLfloat *v, *n, *c;
-    for(int i = 1; i <= m->numvertices; i++){
-        v = &m->vertices[3 * i];
-		mesh.addVertex(ofVec3f(v[0], v[1], v[2]));
-    }
-    
-	for(int i = 1; i <= m->numnormals; i++){
-        n = &m->normals[3 * i];
-        mesh.addNormal(ofVec3f(n[0], n[1], n[2]));
-    }
-    
-    for(int i = 1; i <= m->numtexcoords; i++){
-        c = &m->texcoords[2 * i];
-        mesh.addTexCoord(ofVec2f(c[0], c[1]));
-    }
-    
-	for (int i = 0; i < m->numtriangles; i++) {
-		GLMtriangle &t = m->triangles[i];
-        
-        //NOTE: ofMesh does not have support for different indices for tex coords and mormals
-		mesh.addIndex(t.vindices[0]-1);
-        mesh.addIndex(t.vindices[1]-1);
-        mesh.addIndex(t.vindices[2]-1);
+	
+	if (flipFace)
+	{
+		glmReverseWinding(m);
 	}
 	
+	for (int j = 0; j < m->numtriangles; j++)
+	{
+		const GLMtriangle &tri = m->triangles[j];
+		
+		for (int k = 0; k < 3; k++)
+		{
+			GLfloat *v = m->vertices + (tri.vindices[k] * 3);
+			mesh.addVertex(ofVec3f(v[0], v[1], v[2]));
+			
+			if (m->normals && ofInRange(tri.nindices[k], 0, m->numnormals))
+			{
+				GLfloat *n = m->normals + (tri.nindices[k] * 3);
+				mesh.addNormal(ofVec3f(n[0], n[1], n[2]));
+			}
+			
+			if (m->texcoords && ofInRange(tri.tindices[k], 0, m->numtexcoords))
+			{
+				GLfloat *c = m->texcoords + (tri.tindices[k] * 2);
+				mesh.addTexCoord(ofVec2f(c[0], c[1]));
+			}
+		}
+	}
+
 	glmDelete(m);
 }
 
@@ -79,8 +83,9 @@ void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool gene
 	
     if(generateNormals){
         glmFacetNormals(m);
-        glmVertexNormals(m, 90);
     }
+	
+	glmReverseWinding(m);
 
 	GLMgroup *g = m->groups;
 	

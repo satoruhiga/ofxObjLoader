@@ -29,7 +29,7 @@
 class ofxObjLoader
 {
   public:
-	static void load(string path, ofMesh& mesh, bool generateNormals = true);
+	static void load(string path, ofMesh& mesh, bool generateNormals = true, bool flipFace = false);
 	static void save(string path, ofMesh& mesh);
 
 	static void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals = true);
