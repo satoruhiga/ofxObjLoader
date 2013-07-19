@@ -25,41 +25,42 @@
 #include "ofxObjLoader.h"
 #include "glm.h"
 
-void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool flipFace) {
+void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool flipFace)
+{
 	path = ofToDataPath(path);
-    
-    mesh.clear();
-    
+
+	mesh.clear();
+
 	GLMmodel* m;
-	
+
 	m = glmReadOBJ((char*)path.c_str());
-	
-    if (generateNormals)
+
+	if (generateNormals)
 	{
-        glmFacetNormals(m);
+		glmFacetNormals(m);
 		glmVertexNormals(m, 90);
-    }
-	
+	}
+
 	if (flipFace)
 	{
 		glmReverseWinding(m);
 	}
-	
+
 	for (int j = 0; j < m->numtriangles; j++)
 	{
 		const GLMtriangle &tri = m->triangles[j];
-		
+
 		for (int k = 0; k < 3; k++)
 		{
 			GLfloat *v = m->vertices + (tri.vindices[k] * 3);
 			mesh.addVertex(ofVec3f(v[0], v[1], v[2]));
-			
+
 			if (m->normals && ofInRange(tri.nindices[k], 0, m->numnormals))
 			{
 				GLfloat *n = m->normals + (tri.nindices[k] * 3);
 				mesh.addNormal(ofVec3f(n[0], n[1], n[2]));
 			}
-			
+
 			if (m->texcoords && ofInRange(tri.tindices[k], 0, m->numtexcoords))
 			{
 				GLfloat *c = m->texcoords + (tri.tindices[k] * 2);
@@ -74,43 +75,44 @@ void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool fl
 void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals)
 {
 	path = ofToDataPath(path);
-    
-    groups.clear();
-    
+
+	groups.clear();
+
 	GLMmodel* m;
-	
+
 	m = glmReadOBJ((char*)path.c_str());
-	
-    if(generateNormals){
-        glmFacetNormals(m);
-    }
-	
+
+	if (generateNormals)
+	{
+		glmFacetNormals(m);
+	}
+
 	glmReverseWinding(m);
 
 	GLMgroup *g = m->groups;
-	
+
 	while (g)
 	{
 		string name = g->name;
-		
+
 		ofMesh t;
 		GLMtriangle *p = m->triangles;
-		
+
 		for (int j = 0; j < g->numtriangles; j++)
 		{
 			GLMtriangle tri = p[g->triangles[j]];
-			
+
 			for (int k = 0; k < 3; k++)
 			{
 				GLfloat *v = m->vertices + (tri.vindices[k] * 3);
 				t.addVertex(ofVec3f(v[0], v[1], v[2]));
-				
+
 				if (m->normals && ofInRange(tri.nindices[k], 0, m->numnormals))
 				{
 					GLfloat *n = m->normals + (tri.nindices[k] * 3);
 					t.addNormal(ofVec3f(n[0], n[1], n[2]));
 				}
-				
+
 				if (m->texcoords && ofInRange(tri.tindices[k], 0, m->numtexcoords))
 				{
 					GLfloat *c = m->texcoords + (tri.tindices[k] * 2);
@@ -122,71 +124,106 @@ void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool gene
 		groups[name] = t;
 		g = g->next;
 	}
-	
+
 	glmDelete(m);
 }
 
+void ofxObjLoader::save(string path, ofMesh& mesh)
+{
+	path = ofToDataPath(path);
 
-void ofxObjLoader::save(string path, ofMesh& mesh){
-    path = ofToDataPath(path);
-    
-    GLuint writeMode = GLM_NONE;
-//    cout << "saving mesh verts: " << mesh.getNumVertices() << " norms " << mesh.getNumNormals() << " tex coords" << mesh.getNumTexCoords() << " indeces " << mesh.getNumIndices() << endl;
-    GLMmodel* m = new GLMmodel();
+	GLuint writeMode = GLM_NONE;
+	GLMmodel* m = new GLMmodel();
 
-    if(mesh.getNumVertices() > 0){
-        m->numvertices = mesh.getNumVertices();
-	    m->vertices = new GLfloat[(m->numvertices+1)*3];
-        memcpy(&m->vertices[3], &mesh.getVertices()[0].x, sizeof(ofVec3f) * mesh.getNumVertices());
-    }
-    else {
-        ofLogError("ofxObjLoader::save -- No vertices to save!");
-        return;
-    }
+	if (mesh.getNumVertices() > 0)
+	{
+		m->numvertices = mesh.getNumVertices();
+		m->vertices = new GLfloat[(m->numvertices + 1) * 3];
+		memcpy(&m->vertices[3], &mesh.getVertices()[0].x, sizeof(ofVec3f) * mesh.getNumVertices());
+	}
+	else
+	{
+		ofLogError("ofxObjLoader::save -- No vertices to save!");
+		return;
+	}
 
-    if(mesh.getNumNormals() > 0){
-        m->numnormals = mesh.getNumNormals();
-        m->normals = new GLfloat[(m->numnormals+1)*3];
-        memcpy(&m->normals[3], &mesh.getNormals()[0].x, sizeof(ofVec3f)*mesh.getNumNormals());
-        writeMode |= GLM_SMOOTH;
-    }
-	
-    if(mesh.getNumTexCoords() > 0){
-        m->numtexcoords = mesh.getNumTexCoords();
-        m->texcoords = new GLfloat[(m->numtexcoords+1)*2];
-        memcpy(&m->texcoords[2], &mesh.getTexCoords()[0].x, sizeof(ofVec2f)*mesh.getNumTexCoords());
-        writeMode |= GLM_TEXTURE;
+	if (mesh.getNumNormals() > 0)
+	{
+		m->numnormals = mesh.getNumNormals();
+		m->normals = new GLfloat[(m->numnormals + 1) * 3];
+		memcpy(&m->normals[3], &mesh.getNormals()[0].x, sizeof(ofVec3f) * mesh.getNumNormals());
+		writeMode |= GLM_SMOOTH;
+	}
 
-    }
-    
-    if(mesh.getNumIndices() > 0){
-        //create triangles
-		m->numtriangles = mesh.getNumIndices()/3;
-        m->triangles = new GLMtriangle[m->numtriangles];
-        
+	if (mesh.getNumTexCoords() > 0)
+	{
+		m->numtexcoords = mesh.getNumTexCoords();
+		m->texcoords = new GLfloat[(m->numtexcoords + 1) * 2];
+		memcpy(&m->texcoords[2], &mesh.getTexCoords()[0].x, sizeof(ofVec2f) * mesh.getNumTexCoords());
+		writeMode |= GLM_TEXTURE;
+	}
+
+	if (mesh.getNumIndices() > 0)
+	{
+		m->numtriangles = mesh.getNumIndices() / 3;
+		m->triangles = new GLMtriangle[m->numtriangles];
+
+		m->groups = new GLMgroup();
+		m->groups->next = NULL;
+		m->groups->material = NULL;
 		
-        //add them all to one group
-        m->groups = new GLMgroup();
-        m->groups->next = NULL;
-        m->groups->material = NULL;
-        string name = "ofMesh";
-        m->groups->name = (char*)malloc(sizeof(char) * name.length()+1);
-        strcpy(m->groups->name, name.c_str());
-        
-        m->groups->numtriangles = mesh.getNumIndices()/3;
+		string name = "ofMesh";
+		m->groups->name = (char*)malloc(sizeof(char) * name.length() + 1);
+		strcpy(m->groups->name, name.c_str());
+
+		m->groups->numtriangles = mesh.getNumIndices() / 3;
 		m->groups->triangles = new GLuint[m->groups->numtriangles];
-        m->numgroups = 1;
-        for(int i = 0; i < mesh.getNumIndices(); i+=3){
-			for(int j = 0; j < 3; j++){
-				m->triangles[i/3].vindices[j] = mesh.getIndices()[i+j]+1;
-				m->triangles[i/3].nindices[j] = mesh.getIndices()[i+j]+1;
-				m->triangles[i/3].tindices[j] = mesh.getIndices()[i+j]+1;
+		m->numgroups = 1;
+
+		for (int i = 0; i < mesh.getNumIndices(); i += 3)
+		{
+			int idx = i / 3;
+			for (int j = 0; j < 3; j++)
+			{
+				m->triangles[idx].vindices[j] = mesh.getIndices()[i + j] + 1;
+				m->triangles[idx].nindices[j] = mesh.getIndices()[i + j] + 1;
+				m->triangles[idx].tindices[j] = mesh.getIndices()[i + j] + 1;
 			}
-            m->groups->triangles[i/3] = i/3;
-        }
-    }
-    
+			m->groups->triangles[idx] = idx;
+		}
+	}
+	else
+	{
+		m->numtriangles = mesh.getNumVertices() / 3;
+		m->triangles = new GLMtriangle[m->numtriangles];
+
+		m->groups = new GLMgroup();
+		m->groups->next = NULL;
+		m->groups->material = NULL;
+		
+		string name = "ofMesh";
+		m->groups->name = (char*)malloc(sizeof(char) * name.length() + 1);
+		strcpy(m->groups->name, name.c_str());
+
+		m->groups->numtriangles = mesh.getNumVertices() / 3;
+		m->groups->triangles = new GLuint[m->groups->numtriangles];
+		m->numgroups = 1;
+
+		for (int i = 0; i < mesh.getNumVertices(); i += 3)
+		{
+			int idx = i / 3;
+			for (int j = 0; j < 3; j++)
+			{
+				m->triangles[idx].vindices[j] = i + j + 1;
+				m->triangles[idx].nindices[j] = i + j + 1;
+				m->triangles[idx].tindices[j] = i + j + 1;
+			}
+			m->groups->triangles[idx] = idx;
+		}
+	}
 	
-    glmWriteOBJ(m, (char*)path.c_str(), writeMode);
-    glmDelete(m);
+	// TODO: remove deplicate vertcies
+
+	glmWriteOBJ(m, (char*)path.c_str(), writeMode);
+	glmDelete(m);
 }
