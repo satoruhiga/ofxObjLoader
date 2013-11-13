@@ -416,7 +416,8 @@ glmWriteMTL(GLMmodel* model, char* modelpath, char* mtllibname)
   for (i = 0; i < model->nummaterials; i++) {
     material = &model->materials[i];
     fprintf(file, "newmtl %s\n", material->name);
-    fprintf(file, "Ka %f %f %f\n", 
+    fprintf(file, "map_Kd %s\n", material->texture_path);
+    fprintf(file, "Ka %f %f %f\n",
 	    material->ambient[0], material->ambient[1], material->ambient[2]);
     fprintf(file, "Kd %f %f %f\n", 
 	    material->diffuse[0], material->diffuse[1], material->diffuse[2]);
@@ -425,6 +426,8 @@ glmWriteMTL(GLMmodel* model, char* modelpath, char* mtllibname)
     fprintf(file, "Ns %f\n", material->shininess / 128.0 * 1000.0);
     fprintf(file, "\n");
   }
+	
+  fflush(file);
 }
 
 
@@ -1288,7 +1291,10 @@ glmDelete(GLMmodel* model)
   if (model->triangles)  free(model->triangles);
   if (model->materials) {
     for (i = 0; i < model->nummaterials; i++)
+	{
       free(model->materials[i].name);
+	  free(model->materials[i].texture_path);
+	}
   }
   free(model->materials);
   while(model->groups) {
@@ -1518,7 +1524,9 @@ glmWriteOBJ(GLMmodel* model, char* filename, GLuint mode)
   while(group) {
     fprintf(file, "g %s\n", group->name);
     if (mode & GLM_MATERIAL)
+	{
       fprintf(file, "usemtl %s\n", model->materials[group->material].name);
+	}
     for (i = 0; i < group->numtriangles; i++) {
       if (mode & GLM_SMOOTH && mode & GLM_TEXTURE) {
 	fprintf(file, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",

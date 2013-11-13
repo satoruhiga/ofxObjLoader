@@ -26,12 +26,19 @@
 
 #include "ofMain.h"
 
-class ofxObjLoader
-{
-public:
-	static void load(string path, ofMesh& mesh, bool generateNormals = true, bool flipFace = false);
-	static void save(string path, ofMesh& mesh, bool flipFace = false, bool flipNormals = false);
+#define OFX_OBJLOADER_BEGIN_NAMESPACE namespace ofx { namespace ObjLoader {
+#define OFX_OBJLOADER_END_NAMESPACE } }
 
-	static void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals = true);
+OFX_OBJLOADER_BEGIN_NAMESPACE
 
-};
+void load(string path, ofMesh& mesh, bool generateNormals = true, bool flipFace = false);
+void save(string path, ofMesh& mesh, bool flipFace = false, bool flipNormals = false, ofPixels* texture = NULL);
+
+void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals = true);
+
+void vertexColorToFaceColor(ofMesh& mesh);
+void faceColorToTexture(ofMesh& mesh, ofImage& image);
+
+OFX_OBJLOADER_END_NAMESPACE
+
+namespace ofxObjLoader = ofx::ObjLoader;

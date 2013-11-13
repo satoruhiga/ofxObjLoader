@@ -62,6 +62,7 @@ extern "C" {
 typedef struct _GLMmaterial
 {
   char* name;				/* name of material */
+  char* texture_path;
   GLfloat diffuse[4];			/* diffuse component */
   GLfloat ambient[4];			/* ambient component */
   GLfloat specular[4];			/* specular component */

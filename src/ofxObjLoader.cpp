@@ -25,7 +25,9 @@
 #include "ofxObjLoader.h"
 #include "glm.h"
 
-void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool flipFace)
+OFX_OBJLOADER_BEGIN_NAMESPACE
+
+void load(string path, ofMesh& mesh, bool generateNormals, bool flipFace)
 {
 	path = ofToDataPath(path);
 
@@ -78,7 +80,7 @@ void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool fl
 	glmDelete(m);
 }
 
-void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals)
+void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals)
 {
 	path = ofToDataPath(path);
 
@@ -140,13 +142,15 @@ void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool gene
 	glmDelete(m);
 }
 
-void ofxObjLoader::save(string path, ofMesh& mesh, bool flipFace, bool flipNormals)
+void save(string path, ofMesh& mesh, bool flipFace, bool flipNormals, ofPixels* texture)
 {
 	path = ofToDataPath(path);
+	
+	ofFilePath::createEnclosingDirectory(path);
 
 	GLuint writeMode = GLM_NONE;
 	GLMmodel* m = new GLMmodel();
-
+	
 	if (mesh.getNumVertices() > 0)
 	{
 		m->numvertices = mesh.getNumVertices();
@@ -242,7 +246,114 @@ void ofxObjLoader::save(string path, ofMesh& mesh, bool flipFace, bool flipNorma
 	
 	if (flipFace)
 		glmReverseWinding(m);
-	
+
+	if (texture && texture->isAllocated())
+	{
+		// export texture map
+		
+		ofFile file(path);
+		string base_path = file.getEnclosingDirectory();
+		string material_name = file.getBaseName();
+		
+		string image_name = material_name + ".png";
+		ofPixels pix = *texture;
+		
+		// flip save texture
+		pix.mirror(true, false);
+		ofSaveImage(pix, ofFilePath::join(base_path, image_name));
+		
+		string mtl_filename = material_name + ".mtl";
+		
+		writeMode |= GLM_MATERIAL;
+		m->mtllibname = (char*)malloc(mtl_filename.size());
+		strcpy(m->mtllibname, mtl_filename.c_str());
+		
+		m->nummaterials = 1;
+		m->materials = (GLMmaterial*)malloc(sizeof(GLMmaterial));
+		GLMmaterial *mat = &m->materials[0];
+		memset(mat, 0, sizeof(GLMmaterial));
+		
+		for (int i = 0; i < 4; i++)
+		{
+			mat->diffuse[i] = 1;
+			mat->ambient[i] = 1;
+			mat->specular[i] = 1;
+			mat->emmissive[i] = 1;
+		}
+		mat->shininess = 1;
+		
+		mat->name = (char*)malloc(material_name.size());
+		strcpy(mat->name, material_name.c_str());
+		
+		mat->texture_path = (char*)malloc(image_name.size());
+		strcpy(mat->texture_path, image_name.c_str());
+	}
+
 	glmWriteOBJ(m, (char*)path.c_str(), writeMode);
 	glmDelete(m);
 }
+
+void vertexColorToFaceColor(ofMesh& mesh)
+{
+	vector<ofFloatColor> face_color;
+	vector<ofFloatColor> &color = mesh.getColors();
+	
+	for (int i = 0; i < color.size(); i += 3)
+	{
+		ofFloatColor c0 = color[i + 0];
+		ofFloatColor c1 = color[i + 1];
+		ofFloatColor c2 = color[i + 2];
+		
+		float r = (c0.r + c1.r + c2.r) / 3;
+		float g = (c0.g + c1.g + c2.g) / 3;
+		float b = (c0.b + c1.b + c2.b) / 3;
+		ofFloatColor c(r, g, b, 1);
+		
+		face_color.push_back(c);
+		face_color.push_back(c);
+		face_color.push_back(c);
+	}
+	
+	mesh.getColors() = face_color;
+}
+
+void faceColorToTexture(ofMesh& mesh, ofImage& image)
+{
+	vector<ofFloatColor> &color = mesh.getColors();
+	int num_face = color.size() / 3;
+	
+	int tex_size = ofNextPow2(sqrt(num_face));
+	
+	bool arb = ofGetUsingArbTex();
+	ofDisableArbTex();
+	image.allocate(tex_size, tex_size, OF_IMAGE_COLOR);
+	if (arb) ofEnableArbTex();
+	
+	mesh.clearTexCoords();
+	
+	image.getPixelsRef().set(0);
+	
+	float texel_size = (1. / image.getWidth()) * 0.5;
+	
+	for (int i = 0; i < num_face; i++)
+	{
+		int u = (i % tex_size);
+		int v = (i / tex_size);
+		
+		ofColor c = color[i * 3];
+		
+		image.setColor(u, v, c);
+		
+		float uu = (float)u / image.getWidth() + texel_size;
+		float vv = (float)v / image.getHeight() + texel_size;
+		
+		mesh.addTexCoord(ofVec2f(uu, vv));
+		mesh.addTexCoord(ofVec2f(uu, vv));
+		mesh.addTexCoord(ofVec2f(uu, vv));
+	}
+	
+	image.update();
+	mesh.clearColors();
+}
+
+OFX_OBJLOADER_END_NAMESPACE
