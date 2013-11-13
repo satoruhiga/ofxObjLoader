@@ -142,8 +142,10 @@ void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals)
 	glmDelete(m);
 }
 
-void save(string path, ofMesh& mesh, bool flipFace, bool flipNormals, ofPixels* texture)
+void save(string path, const ofMesh& mesh_, bool flipFace, bool flipNormals, bool export_vertexcolor_to_texture)
 {
+	ofMesh mesh = mesh_;
+	
 	path = ofToDataPath(path);
 	
 	ofFilePath::createEnclosingDirectory(path);
@@ -151,6 +153,58 @@ void save(string path, ofMesh& mesh, bool flipFace, bool flipNormals, ofPixels* 
 	GLuint writeMode = GLM_NONE;
 	GLMmodel* m = new GLMmodel();
 	
+	if (export_vertexcolor_to_texture)
+	{
+		if (mesh.getMode() != OF_PRIMITIVE_TRIANGLES)
+		{
+			ofLogError("ofxObjLoader::save") << "vertex color to texture supported only triangle primitive";
+		}
+		else
+		{
+			ofImage image;
+			
+			vertexColorToFaceColor(mesh);
+			faceColorToTexture(mesh, image);
+			
+			ofFile file(path);
+			string base_path = file.getEnclosingDirectory();
+			string material_name = file.getBaseName();
+			
+			string image_name = material_name + ".png";
+			ofPixels pix = image.getPixelsRef();
+			
+			// flip save texture
+			pix.mirror(true, false);
+			ofSaveImage(pix, ofFilePath::join(base_path, image_name));
+			
+			string mtl_filename = material_name + ".mtl";
+			
+			writeMode |= GLM_MATERIAL;
+			m->mtllibname = (char*)malloc(mtl_filename.size());
+			strcpy(m->mtllibname, mtl_filename.c_str());
+			
+			m->nummaterials = 1;
+			m->materials = (GLMmaterial*)malloc(sizeof(GLMmaterial));
+			GLMmaterial *mat = &m->materials[0];
+			memset(mat, 0, sizeof(GLMmaterial));
+			
+			for (int i = 0; i < 4; i++)
+			{
+				mat->diffuse[i] = 1;
+				mat->ambient[i] = 1;
+				mat->specular[i] = 1;
+				mat->emmissive[i] = 1;
+			}
+			mat->shininess = 1;
+			
+			mat->name = (char*)malloc(material_name.size());
+			strcpy(mat->name, material_name.c_str());
+			
+			mat->texture_path = (char*)malloc(image_name.size());
+			strcpy(mat->texture_path, image_name.c_str());
+		}
+	}
+
 	if (mesh.getNumVertices() > 0)
 	{
 		m->numvertices = mesh.getNumVertices();
@@ -246,48 +300,6 @@ void save(string path, ofMesh& mesh, bool flipFace, bool flipNormals, ofPixels* 
 	
 	if (flipFace)
 		glmReverseWinding(m);
-
-	if (texture && texture->isAllocated())
-	{
-		// export texture map
-		
-		ofFile file(path);
-		string base_path = file.getEnclosingDirectory();
-		string material_name = file.getBaseName();
-		
-		string image_name = material_name + ".png";
-		ofPixels pix = *texture;
-		
-		// flip save texture
-		pix.mirror(true, false);
-		ofSaveImage(pix, ofFilePath::join(base_path, image_name));
-		
-		string mtl_filename = material_name + ".mtl";
-		
-		writeMode |= GLM_MATERIAL;
-		m->mtllibname = (char*)malloc(mtl_filename.size());
-		strcpy(m->mtllibname, mtl_filename.c_str());
-		
-		m->nummaterials = 1;
-		m->materials = (GLMmaterial*)malloc(sizeof(GLMmaterial));
-		GLMmaterial *mat = &m->materials[0];
-		memset(mat, 0, sizeof(GLMmaterial));
-		
-		for (int i = 0; i < 4; i++)
-		{
-			mat->diffuse[i] = 1;
-			mat->ambient[i] = 1;
-			mat->specular[i] = 1;
-			mat->emmissive[i] = 1;
-		}
-		mat->shininess = 1;
-		
-		mat->name = (char*)malloc(material_name.size());
-		strcpy(mat->name, material_name.c_str());
-		
-		mat->texture_path = (char*)malloc(image_name.size());
-		strcpy(mat->texture_path, image_name.c_str());
-	}
 
 	glmWriteOBJ(m, (char*)path.c_str(), writeMode);
 	glmDelete(m);
