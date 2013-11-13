@@ -140,7 +140,7 @@ void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool gene
 	glmDelete(m);
 }
 
-void ofxObjLoader::save(string path, ofMesh& mesh)
+void ofxObjLoader::save(string path, ofMesh& mesh, bool flipFace, bool flipNormals)
 {
 	path = ofToDataPath(path);
 
@@ -163,7 +163,13 @@ void ofxObjLoader::save(string path, ofMesh& mesh)
 	{
 		m->numnormals = mesh.getNumNormals();
 		m->normals = new GLfloat[(m->numnormals + 1) * 3];
-		memcpy(&m->normals[3], &mesh.getNormals()[0].x, sizeof(ofVec3f) * mesh.getNumNormals());
+		vector<ofVec3f> normals = mesh.getNormals();
+		
+		if (flipNormals)
+			for (int i = 0; i < normals.size(); i++)
+				normals[i] *= -1;
+		
+		memcpy(&m->normals[3], &normals[0].x, sizeof(ofVec3f) * normals.size());
 		writeMode |= GLM_SMOOTH;
 	}
 
@@ -234,8 +240,9 @@ void ofxObjLoader::save(string path, ofMesh& mesh)
 		}
 	}
 	
-	// TODO: remove deplicate vertcies
-
+	if (flipFace)
+		glmReverseWinding(m);
+	
 	glmWriteOBJ(m, (char*)path.c_str(), writeMode);
 	glmDelete(m);
 }

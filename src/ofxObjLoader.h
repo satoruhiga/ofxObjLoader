@@ -30,7 +30,7 @@ class ofxObjLoader
 {
 public:
 	static void load(string path, ofMesh& mesh, bool generateNormals = true, bool flipFace = false);
-	static void save(string path, ofMesh& mesh);
+	static void save(string path, ofMesh& mesh, bool flipFace = false, bool flipNormals = false);
 
 	static void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals = true);
 
