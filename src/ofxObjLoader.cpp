@@ -55,6 +55,12 @@ void ofxObjLoader::load(string path, ofMesh& mesh, bool generateNormals, bool fl
 			GLfloat *v = m->vertices + (tri.vindices[k] * 3);
 			mesh.addVertex(ofVec3f(v[0], v[1], v[2]));
 
+			if (m->colors)
+			{
+				GLfloat *c = m->colors + (tri.vindices[k] * 3);
+				mesh.addColor(ofFloatColor(c[0], c[1], c[2]));
+			}
+
 			if (m->normals && ofInRange(tri.nindices[k], 0, m->numnormals))
 			{
 				GLfloat *n = m->normals + (tri.nindices[k] * 3);
@@ -106,6 +112,12 @@ void ofxObjLoader::loadGroup(string path, map<string, ofMesh>& groups, bool gene
 			{
 				GLfloat *v = m->vertices + (tri.vindices[k] * 3);
 				t.addVertex(ofVec3f(v[0], v[1], v[2]));
+
+				if (m->colors)
+				{
+					GLfloat *c = m->colors + (tri.vindices[k] * 3);
+					t.addColor(ofFloatColor(c[0], c[1], c[2]));
+				}
 
 				if (m->normals && ofInRange(tri.nindices[k], 0, m->numnormals))
 				{

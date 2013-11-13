@@ -117,6 +117,9 @@ typedef struct _GLMmodel {
 
   GLfloat position[3];			/* position of the model */
 
+  GLfloat* colors;
+  int has_vertex_color;
+  
 } GLMmodel;
 
 

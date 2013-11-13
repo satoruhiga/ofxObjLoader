@@ -582,6 +582,7 @@ glmSecondPass(GLMmodel* model, FILE* file)
   GLuint    numtexcoords;		/* number of texcoords in model */
   GLuint    numtriangles;		/* number of triangles in model */
   GLfloat*  vertices;			/* array of vertices  */
+  GLfloat*  colors;			/* array of vertices  */
   GLfloat*  normals;			/* array of normals */
   GLfloat*  texcoords;			/* array of texture coordinates */
   GLMgroup* group;			/* current group pointer */
@@ -591,6 +592,7 @@ glmSecondPass(GLMmodel* model, FILE* file)
 
   /* set the pointer shortcuts */
   vertices     = model->vertices;
+  colors       = model->colors;
   normals      = model->normals;
   texcoords    = model->texcoords;
   group        = model->groups;
@@ -600,6 +602,7 @@ glmSecondPass(GLMmodel* model, FILE* file)
   numvertices = numnormals = numtexcoords = 1;
   numtriangles = 0;
   material = 0;
+
   while(fscanf(file, "%s", buf) != EOF) {
     switch(buf[0]) {
     case '#':				/* comment */
@@ -609,10 +612,13 @@ glmSecondPass(GLMmodel* model, FILE* file)
     case 'v':				/* v, vn, vt */
       switch(buf[1]) {
       case '\0':			/* vertex */
-	fscanf(file, "%f %f %f", 
+  model->has_vertex_color = (6 == fscanf(file, "%f %f %f %f %f %f",
 	       &vertices[3 * numvertices + 0], 
 	       &vertices[3 * numvertices + 1], 
-	       &vertices[3 * numvertices + 2]);
+	       &vertices[3 * numvertices + 2],
+         &colors[3 * numvertices + 0],
+         &colors[3 * numvertices + 1],
+         &colors[3 * numvertices + 2]));
 	numvertices++;
 	break;
       case 'n':				/* normal */
@@ -1322,6 +1328,7 @@ glmReadOBJ(char* filename)
   model->mtllibname    = NULL;
   model->numvertices   = 0;
   model->vertices      = NULL;
+  model->colors        = NULL;
   model->numnormals    = 0;
   model->normals       = NULL;
   model->numtexcoords  = 0;
@@ -1345,6 +1352,8 @@ glmReadOBJ(char* filename)
   /* allocate memory */
   model->vertices = (GLfloat*)malloc(sizeof(GLfloat) *
 				     3 * (model->numvertices + 1));
+  model->colors = (GLfloat*)malloc(sizeof(GLfloat) *
+             3 * (model->numvertices + 1));
   model->triangles = (GLMtriangle*)malloc(sizeof(GLMtriangle) *
 					  model->numtriangles);
   if (model->numnormals) {
@@ -1360,6 +1369,12 @@ glmReadOBJ(char* filename)
   rewind(file);
 
   glmSecondPass(model, file);
+  
+  if (!model->has_vertex_color)
+  {
+    free(model->colors);
+    model->colors = NULL;
+  }
 
   /* close the file */
   fclose(file);
