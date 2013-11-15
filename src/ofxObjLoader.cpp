@@ -334,7 +334,7 @@ void faceColorToTexture(ofMesh& mesh, ofImage& image)
 	vector<ofFloatColor> &color = mesh.getColors();
 	int num_face = color.size() / 3;
 	
-	int tex_size = ofNextPow2(sqrt(num_face));
+	int tex_size = ofNextPow2(ceil(sqrt(num_face)));
 	
 	bool arb = ofGetUsingArbTex();
 	ofDisableArbTex();
