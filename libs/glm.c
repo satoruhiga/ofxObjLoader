@@ -303,6 +303,7 @@ glmReadMTL(GLMmodel* model, char* name)
   /* set the default material */
   for (i = 0; i < nummaterials; i++) {
     model->materials[i].name = NULL;
+	model->materials[i].texture_path = NULL;
     model->materials[i].shininess = 65.0;
     model->materials[i].diffuse[0] = 0.8;
     model->materials[i].diffuse[1] = 0.8;
@@ -1293,7 +1294,8 @@ glmDelete(GLMmodel* model)
     for (i = 0; i < model->nummaterials; i++)
 	{
       free(model->materials[i].name);
-	  free(model->materials[i].texture_path);
+	  if (model->materials[i].texture_path != NULL)
+	    free(model->materials[i].texture_path);
 	}
   }
   free(model->materials);
