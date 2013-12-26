@@ -326,7 +326,12 @@ void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, boo
         numOfVerticesTotal += mesh.getNumVertices();
         numOfNormalsTotal += mesh.getNumNormals();
         numOfTexCoordsTotal += mesh.getNumTexCoords();
-        numOfIndicesTotal += mesh.getNumIndices();
+
+        if(mesh.getNumIndices() > 0) {
+            numOfIndicesTotal += mesh.getNumIndices();
+        } else {
+            numOfIndicesTotal += mesh.getNumVertices();
+        }
     }
     
     // glm skips the first array element when exporting.
@@ -354,14 +359,9 @@ void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, boo
     
     if(numOfIndicesTotal > 0) {
         numOfTrianglesTotal = numOfIndicesTotal / 3;
-    } else {
-        numOfTrianglesTotal = numOfVerticesTotal / 3;
+        m->numtriangles = numOfTrianglesTotal;
+        m->triangles = new GLMtriangle[m->numtriangles];
     }
-    if(numOfTrianglesTotal == 0) {
-        return;
-    }
-    m->numtriangles = numOfTrianglesTotal;
-    m->triangles = new GLMtriangle[m->numtriangles];
     
     int numOfVertices = 0;
     int numOfNormals = 0;
@@ -373,7 +373,7 @@ void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, boo
     int indexNormals = 1;
     int indexTexCoords = 1;
     int indexIndices = 0;
-    int indexIndicesOffset = 0;
+    int indexTriangles = 0;
     
     for(int k=0; k<meshGroup.size(); k++) {
         const ofMesh & mesh = meshGroup[k];
@@ -411,12 +411,11 @@ void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, boo
             writeMode |= GLM_TEXTURE;
         }
         
-        if(numOfIndicesTotal > 0) {
-            numOfIndices = mesh.getNumIndices();
+        numOfIndices = mesh.getNumIndices();
+        if(numOfIndices > 0) {
             numOfTriangles = numOfIndices / 3;
         } else {
-            numOfIndices = mesh.getNumVertices();
-            numOfTriangles = numOfIndices / 3;
+            numOfTriangles = numOfVertices / 3;
         }
         
         GLMgroup * groupPrev = group;
@@ -441,15 +440,23 @@ void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, boo
         group->triangles = new GLuint[group->numtriangles];
         
         const vector<ofIndexType> & indices = mesh.getIndices();
-        int indexTriangles = indexIndices / 3;
+        int index = 0;
         
         for(int i=0; i<numOfTriangles; i++) {
             
             int t = i + indexTriangles;
             
             for(int j=0; j<3; j++) {
+                
+                int idx = i * 3 + j;
             
-                int index = indices[i * 3 + j] + indexIndicesOffset + 1;
+                if(numOfIndices > 0) {
+                    index = indices[idx];
+                } else {
+                    index = idx;
+                }
+                
+                index += (indexIndices + 1);
                 
                 m->triangles[t].vindices[j] = index;
                 m->triangles[t].nindices[j] = index;
@@ -459,8 +466,8 @@ void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, boo
             group->triangles[i] = t;
         }
         
-        indexIndices += numOfIndices;
-        indexIndicesOffset += numOfVertices;
+        indexIndices += numOfVertices;
+        indexTriangles += numOfTriangles;
     }
 	
 	if(flipFace == true) {
