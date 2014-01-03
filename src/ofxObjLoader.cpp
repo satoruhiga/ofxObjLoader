@@ -305,6 +305,179 @@ void save(string path, const ofMesh& mesh_, bool flipFace, bool flipNormals, boo
 	glmDelete(m);
 }
 
+void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace, bool flipNormals) {
+	path = ofToDataPath(path);
+	
+	ofFilePath::createEnclosingDirectory(path);
+    
+	GLuint writeMode = GLM_NONE;
+	GLMmodel * m = new GLMmodel();
+    GLMgroup * group = NULL;
+
+    int numOfVerticesTotal = 0;
+    int numOfNormalsTotal = 0;
+    int numOfTexCoordsTotal = 0;
+    int numOfIndicesTotal = 0;
+    int numOfTrianglesTotal = 0;
+    
+    for(int i=0; i<meshGroup.size(); i++) {
+        const ofMesh & mesh = meshGroup[i];
+        
+        numOfVerticesTotal += mesh.getNumVertices();
+        numOfNormalsTotal += mesh.getNumNormals();
+        numOfTexCoordsTotal += mesh.getNumTexCoords();
+
+        if(mesh.getNumIndices() > 0) {
+            numOfIndicesTotal += mesh.getNumIndices();
+        } else {
+            numOfIndicesTotal += mesh.getNumVertices();
+        }
+    }
+    
+    // glm skips the first array element when exporting.
+    // not sure why?
+    // but it means everything needs to be padded by 1.
+    
+    numOfVerticesTotal += 1;
+    numOfNormalsTotal += 1;
+    numOfTexCoordsTotal += 1;
+    
+    if(numOfVerticesTotal > 0) {
+        m->numvertices = numOfVerticesTotal;
+        m->vertices = new GLfloat[m->numvertices * 3];
+    }
+    
+    if(numOfNormalsTotal > 0) {
+        m->numnormals = numOfNormalsTotal;
+        m->normals = new GLfloat[m->numnormals * 3];
+    }
+    
+    if(numOfTexCoordsTotal > 0) {
+        m->numtexcoords = numOfTexCoordsTotal;
+        m->texcoords = new GLfloat[m->numtexcoords * 2];
+    }
+    
+    if(numOfIndicesTotal > 0) {
+        numOfTrianglesTotal = numOfIndicesTotal / 3;
+        m->numtriangles = numOfTrianglesTotal;
+        m->triangles = new GLMtriangle[m->numtriangles];
+    }
+    
+    int numOfVertices = 0;
+    int numOfNormals = 0;
+    int numOfTexCoords = 0;
+    int numOfIndices = 0;
+    int numOfTriangles = 0;
+    
+    int indexVertices = 1;
+    int indexNormals = 1;
+    int indexTexCoords = 1;
+    int indexIndices = 0;
+    int indexTriangles = 0;
+    
+    for(int k=0; k<meshGroup.size(); k++) {
+        const ofMesh & mesh = meshGroup[k];
+        
+        if(numOfVerticesTotal > 0) {
+            numOfVertices = mesh.getNumVertices();
+            memcpy(&m->vertices[indexVertices * 3], &mesh.getVertices()[0].x, sizeof(ofVec3f) * numOfVertices);
+            indexVertices += numOfVertices;
+        } else {
+            ofLogError("ofxObjLoader::save -- No vertices to save!");
+            return;
+        }
+        
+        if(numOfNormalsTotal > 0) {
+            numOfNormals = mesh.getNumNormals();
+            vector<ofVec3f> normals = mesh.getNormals();
+            
+            if(flipNormals) {
+                for(int i = 0; i < normals.size(); i++) {
+                    normals[i] *= -1;
+                }
+            }
+            
+            memcpy(&m->normals[indexNormals * 3], &normals[0].x, sizeof(ofVec3f) * numOfNormals);
+            indexNormals += numOfNormals;
+            
+            writeMode |= GLM_SMOOTH;
+        }
+        
+        if(numOfTexCoordsTotal > 0) {
+            numOfTexCoords = mesh.getNumTexCoords();
+            memcpy(&m->texcoords[indexTexCoords * 2], &mesh.getTexCoords()[0].x, sizeof(ofVec2f) * numOfTexCoords);
+            indexTexCoords += numOfTexCoords;
+
+            writeMode |= GLM_TEXTURE;
+        }
+        
+        numOfIndices = mesh.getNumIndices();
+        if(numOfIndices > 0) {
+            numOfTriangles = numOfIndices / 3;
+        } else {
+            numOfTriangles = numOfVertices / 3;
+        }
+        
+        GLMgroup * groupPrev = group;
+        group = new GLMgroup();
+        group->next = NULL;
+        group->material = NULL;
+        
+        if(m->groups == NULL) {
+            m->groups = group;
+            m->numgroups = 1;
+        }
+        if(groupPrev != NULL) {
+            groupPrev->next = group;
+            m->numgroups += 1;
+        }
+        
+        string name = "ofMesh_" + ofToString(k);
+        group->name = (char*)malloc(sizeof(char) * name.length() + 1);
+        strcpy(group->name, name.c_str());
+        
+        group->numtriangles = numOfTriangles;
+        group->triangles = new GLuint[group->numtriangles];
+        
+        const vector<ofIndexType> & indices = mesh.getIndices();
+        int index = 0;
+        
+        for(int i=0; i<numOfTriangles; i++) {
+            
+            int t = i + indexTriangles;
+            
+            for(int j=0; j<3; j++) {
+                
+                int idx = i * 3 + j;
+            
+                if(numOfIndices > 0) {
+                    index = indices[idx];
+                } else {
+                    index = idx;
+                }
+                
+                index += (indexIndices + 1);
+                
+                m->triangles[t].vindices[j] = index;
+                m->triangles[t].nindices[j] = index;
+                m->triangles[t].tindices[j] = index;
+            }
+            
+            group->triangles[i] = t;
+        }
+        
+        indexIndices += numOfVertices;
+        indexTriangles += numOfTriangles;
+    }
+	
+	if(flipFace == true) {
+		glmReverseWinding(m);
+    }
+    
+	glmWriteOBJ(m, (char*)path.c_str(), writeMode);
+	glmDelete(m);
+}
+
 void vertexColorToFaceColor(ofMesh& mesh)
 {
 	vector<ofFloatColor> face_color;

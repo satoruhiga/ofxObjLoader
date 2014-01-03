@@ -35,6 +35,7 @@ void load(string path, ofMesh& mesh, bool generateNormals = true, bool flipFace 
 void save(string path, const ofMesh& mesh, bool flipFace = false, bool flipNormals = false, bool export_vertexcolor_to_texture = false);
 
 void loadGroup(string path, map<string, ofMesh>& groups, bool generateNormals = true);
+void saveGroup(string path, const vector<ofMesh> & meshGroup, bool flipFace = false, bool flipNormals = false);
 
 // utils
 void vertexColorToFaceColor(ofMesh& mesh);
