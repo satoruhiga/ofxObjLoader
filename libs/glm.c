@@ -271,7 +271,7 @@ glmReadMTL(GLMmodel* model, char* name)
   if (!file) {
     fprintf(stderr, "glmReadMTL() failed: can't open material file \"%s\".\n",
 	    filename);
-    exit(1);
+    return;
   }
   free(filename);
 
